@@ -11,6 +11,8 @@ namespace Quadtree
         private Rect _rect;
         private int _level;
 
+        public int Level => _level;
+
         private readonly List<Node> _children = new();
         private readonly HashSet<ISpatialItem> _items = new();
 
@@ -27,6 +29,7 @@ namespace Quadtree
                 if (_items.Count < MAX_ITEMS || _level == MAX_LEVEL)
                 {
                     _items.Add(newItem);
+                    newItem.SetNode(this);
                     return;
                 }
 
@@ -71,7 +74,7 @@ namespace Quadtree
             TryToMergeChildren();
         }
 
-        private bool Contains(ISpatialItem item) => _rect.Contains(new Vector2(item.Position.x, item.Position.z));
+        public bool Contains(ISpatialItem item) => _rect.Contains(new Vector2(item.Position.x, item.Position.z));
 
         private void TryToMergeChildren()
         {
@@ -85,11 +88,17 @@ namespace Quadtree
                 count += child._items.Count;
             }
 
+            //Debug.Log($"{Level}: {count} > {MAX_ITEMS}");
             if (count > MAX_ITEMS)
                 return;
 
             foreach (Node child in _children)
+            {
+                foreach (var item in child._items)
+                    item.SetNode(this);
+
                 _items.UnionWith(child._items);
+            }
 
             _children.Clear();
         }
@@ -100,18 +109,18 @@ namespace Quadtree
             _items.Clear();
         }
 
-        #region debug
-        public void DrawGizmos()
-        {
-            Vector3 center = new(_rect.x + _rect.width / 2f, 0, _rect.y + _rect.height / 2f);
-            Vector3 size = new(_rect.width, 0, _rect.height);
+        //#region debug
+        //public void DrawGizmos(Color color)
+        //{
+        //    Vector3 center = new(_rect.x + _rect.width / 2f, 0, _rect.y + _rect.height / 2f);
+        //    Vector3 size = new(_rect.width, 0, _rect.height);
 
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(center, size);
+        //    Gizmos.color = color;
+        //    Gizmos.DrawWireCube(center, size);
 
-            foreach (var child in _children)
-                child.DrawGizmos();
-        }
+        //    foreach (var child in _children)
+        //        child.DrawGizmos(color);
+        //}
 
         //public void DebugLog(string indent = "")
         //{
@@ -120,6 +129,6 @@ namespace Quadtree
         //    foreach (var child in _children)
         //        child.DebugLog(indent + "  ");
         //}
-        #endregion
+        //#endregion
     }
 }
