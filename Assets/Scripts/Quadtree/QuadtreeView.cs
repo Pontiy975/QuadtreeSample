@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Quadtree
@@ -30,9 +31,17 @@ namespace Quadtree
             //_root?.DebugLog();
         }
 
-        //private void OnDrawGizmos()
-        //{
-        //    _root?.DrawGizmos(Color.green);
-        //}
+        public List<ISpatialItem> GetEnemiesInRadius(Vector3 center, float radius)
+        {
+            List<ISpatialItem> enemies = new();
+            _root.QueryRange(center, radius, enemies);
+            return enemies;
+        }
+
+
+        private void OnDrawGizmos()
+        {
+            _root?.DrawGizmos(Color.green);
+        }
     }
 }

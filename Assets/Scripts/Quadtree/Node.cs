@@ -75,6 +75,39 @@ namespace Quadtree
         }
 
         public bool Contains(ISpatialItem item) => _rect.Contains(new Vector2(item.Position.x, item.Position.z));
+        
+        // just for tests
+        public void QueryRange(Vector3 center, float radius, List<ISpatialItem> result)
+        {
+            if (!IntersectsCircle(center, radius))
+                return;
+
+            foreach (ISpatialItem item in _items)
+            {
+                result.Add(item);
+            }
+
+            foreach (Node child in _children)
+                child.QueryRange(center, radius, result);
+        }
+
+        //public void QueryRange(Vector3 center, float radius, List<ISpatialItem> result)
+        //{
+        //    float radiusSqr = radius * radius;
+
+        //    if (!IntersectsCircle(center, radius))
+        //        return;
+
+        //    foreach (ISpatialItem item in _items)
+        //    {
+        //        float sqrDist = (new Vector3(item.Position.x, 0, item.Position.z) - new Vector3(center.x, 0, center.z)).sqrMagnitude;
+        //        if (sqrDist <= radiusSqr)
+        //            result.Add(item);
+        //    }
+
+        //    foreach (Node child in _children)
+        //        child.QueryRange(center, radius, result);
+        //}
 
         private void TryToMergeChildren()
         {
@@ -109,18 +142,29 @@ namespace Quadtree
             _items.Clear();
         }
 
-        //#region debug
-        //public void DrawGizmos(Color color)
-        //{
-        //    Vector3 center = new(_rect.x + _rect.width / 2f, 0, _rect.y + _rect.height / 2f);
-        //    Vector3 size = new(_rect.width, 0, _rect.height);
+        private bool IntersectsCircle(Vector3 center, float radius)
+        {
+            float closestX = Mathf.Clamp(center.x, _rect.x, _rect.x + _rect.width);
+            float closestZ = Mathf.Clamp(center.z, _rect.y, _rect.y + _rect.height);
 
-        //    Gizmos.color = color;
-        //    Gizmos.DrawWireCube(center, size);
+            float dx = center.x - closestX;
+            float dz = center.z - closestZ;
 
-        //    foreach (var child in _children)
-        //        child.DrawGizmos(color);
-        //}
+            return dx * dx + dz * dz <= radius * radius;
+        }
+
+        #region debug
+        public void DrawGizmos(Color color)
+        {
+            Vector3 center = new(_rect.x + _rect.width / 2f, 0, _rect.y + _rect.height / 2f);
+            Vector3 size = new(_rect.width, 0, _rect.height);
+
+            Gizmos.color = color;
+            Gizmos.DrawWireCube(center, size);
+
+            foreach (var child in _children)
+                child.DrawGizmos(color);
+        }
 
         //public void DebugLog(string indent = "")
         //{
@@ -129,6 +173,6 @@ namespace Quadtree
         //    foreach (var child in _children)
         //        child.DebugLog(indent + "  ");
         //}
-        //#endregion
+        #endregion
     }
 }
